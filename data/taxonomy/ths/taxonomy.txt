@@ -1,0 +1,457 @@
+Taxonomy: Type Hints and Variable Annotations (PEP 3107, PEP 484, PEP 526)
+
+├── Motivation & Goals
+│
+│   ├── Annotation Use Cases
+│   │   ├── Theme: Identifying purposes for introducing annotations
+│   │   └── Classification: Motivation
+│   │
+│   ├── Standardizing Type Annotation Syntax
+│   │   ├── Theme: Establishing a common syntax for representing type information
+│   │   └── Classification: Motivation
+│   │
+│   ├── Standardizing Type Annotation Semantics
+│   │   ├── Theme: Defining consistent interpretation of type annotations
+│   │   └── Classification: Motivation
+│   │
+│   ├── Introduction of Type Hints for Variables and Functions
+│   │   ├── Theme: Extending type hints to functions and variables
+│   │   └── Classification: Motivation
+│   │
+│   ├── Optional Static Type Checking
+│   │   ├── Theme: Supporting static analysis without changing Python's dynamic nature
+│   │   └── Classification: Key Feature
+│   │
+│   └── Static Typing Support within a Dynamic Language
+│       ├── Theme: Providing optional typing mechanisms in Python
+│       └── Classification: Design Decision
+│
+├── Annotation Design
+│
+│   ├── Annotations as Arbitrary Expressions
+│   │   ├── Theme: Allowing annotations to contain arbitrary valid expressions
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Arbitrary Expressions as Annotation Values
+│   │   ├── Theme: Supporting flexible annotation values beyond types
+│   │   └── Classification: Design Decision
+│   │
+│   ├── No Built-in Semantics for Annotations
+│   │   ├── Theme: Avoiding predefined runtime meaning for annotations
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Maintaining Annotation Extensibility
+│   │   ├── Theme: Preserving annotations as extensible metadata
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Keeping Annotation Semantics Outside the Standard Library
+│   │   ├── Theme: Leaving interpretation to external tools
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Rejecting Generator Annotation Syntax
+│   │   ├── Theme: Rejecting alternative syntax based on generators
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Rejecting Standard Type Parameterization Syntax
+│   │   ├── Theme: Avoiding built-in generic syntax in favor of typing module
+│   │   └── Classification: Design Decision
+│   │
+│   └── Rejecting Annotation Interoperability Standardization
+│       ├── Theme: Avoiding restrictions on annotation consumers
+│       └── Classification: Design Decision
+│
+├── Type Annotation Syntax
+│
+│   ├── Function Type Annotation Syntax
+│   │   ├── Theme: Defining syntax for function type annotations
+│   │   └── Classification: Syntax
+│   │
+│   ├── Parameter Annotation Syntax
+│   │   ├── Theme: Annotating function parameters
+│   │   └── Classification: Syntax
+│   │
+│   ├── Return Annotation Syntax
+│   │   ├── Theme: Annotating function return values
+│   │   └── Classification: Syntax
+│   │
+│   ├── Optional Function Annotations
+│   │   ├── Theme: Allowing annotations to be omitted
+│   │   └── Classification: Syntax
+│   │
+│   ├── Function Annotation Metadata
+│   │   ├── Theme: Storing annotations as function metadata
+│   │   └── Classification: Syntax
+│   │
+│   ├── Standardizing Generic Type Parameter Syntax
+│   │   ├── Theme: Defining consistent syntax for generic parameters
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Maintaining Consistency Between Annotation Mechanisms
+│   │   ├── Theme: Keeping different annotation approaches compatible
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Preserving Annotation Flexibility
+│   │   ├── Theme: Allowing annotations to remain general metadata
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Standardizing Type Annotation Syntax
+│   │   ├── Theme: Creating a unified annotation representation
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Improving Type Annotation Syntax
+│   │   ├── Theme: Replacing limitations of previous approaches
+│   │   └── Classification: Motivation
+│   │
+│   ├── Rejection of Function-Like Variable Declaration Syntax
+│   │   ├── Theme: Rejecting variable declaration syntax similar to functions
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Rejection of Function-Based Annotation Syntax
+│   │   ├── Theme: Rejecting cast-like annotation mechanisms
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Rejection of Parenthesized Annotation Syntax
+│   │   ├── Theme: Rejecting alternative parenthesized syntax
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Restriction of Ambiguous Assignment Annotations
+│   │   ├── Theme: Avoiding ambiguous assignment annotation forms
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Restriction of Complex Assignment Contexts
+│   │   ├── Theme: Limiting annotations in complex assignment expressions
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Excluding Lambda Annotations
+│   │   ├── Theme: Preventing annotation syntax in lambda expressions
+│   │   └── Classification: Syntax Limitations
+│   │
+│   ├── Preserving Runtime Evaluation Semantics
+│   │   ├── Theme: Maintaining existing runtime behavior of annotations
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Preserving Runtime Evaluation of Annotations
+│   │   ├── Theme: Evaluating annotations according to existing rules
+│   │   └── Classification: Design Decision
+│   │
+│   └── Limiting Runtime Annotation Storage
+│       ├── Theme: Avoiding unnecessary runtime annotation storage
+│       └── Classification: Design Decision
+│
+├── Variable Annotations
+│
+│   ├── Type Comments for Variable Type Declaration
+│   │   ├── Theme: Previous approach using comments for variable typing
+│   │   └── Classification: Previous Approach / Limitation
+│   │
+│   ├── Type Comments as Previous Approach
+│   │   ├── Theme: Using comments as an alternative annotation mechanism
+│   │   └── Classification: Previous Approach / Limitation
+│   │
+│   ├── Introducing Native Variable Annotation Syntax
+│   │   ├── Theme: Adding native syntax for variable annotations
+│   │   └── Classification: Motivation
+│   │
+│   ├── Standardizing Variable Annotation Syntax
+│   │   ├── Theme: Defining consistent syntax for variable annotations
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Extending Type Annotation Support to Variable Categories
+│   │   ├── Theme: Supporting module, class, instance and local variables
+│   │   └── Classification: Key Feature
+│   │
+│   ├── Evolution of Variable Type Annotation
+│   │   ├── Theme: Transition from type comments to native syntax
+│   │   └── Classification: Evolution of Type Hinting
+│   │
+│   ├── Non-Initialization of Annotated Variables
+│   │   ├── Theme: Allowing annotations without assigning values
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Scope Semantics of Variable Annotations
+│   │   ├── Theme: Defining local and global scope behavior
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Default Treatment of Instance Variables
+│   │   ├── Theme: Treating instance variables as default behavior
+│   │   └── Classification: Design Decision
+│   │
+│   ├── Class-Level Organization of Instance Annotations
+│   │   ├── Theme: Allowing instance annotations at class level
+│   │   └── Classification: Design Decision
+│   │
+│   └── Rejection of Alternative Class Variable Syntax
+│       ├── Theme: Rejecting special syntax for class variables
+│       └── Classification: Design Decision
+│
+├── Evolution of Type System
+│
+│   ├── Evolution from Type Comments to Variable Annotations
+│   │   ├── Theme: Migration from comment-based typing to language syntax
+│   │   └── Classification: Motivation
+│   │
+│   └── Gradual Adoption of Type Hints
+│       ├── Theme: Enabling incremental adoption of typing
+│       └── Classification: Evolution of Type Hinting
+├── Type System Design
+│
+│   ├── Static Typing Support within a Dynamic Language
+│   │   ├── Theme: Design Decision
+│   │   └── Provides optional static checking without changing Python's dynamic nature
+│   │
+│   ├── Defining the Concept of Type
+│   │   ├── Theme: Design Decision / Key Feature
+│   │   └── Establishes the meaning of types in Python typing
+│   │
+│   ├── Clarifying Type System Terminology
+│   │   ├── Theme: Design Decision
+│   │   └── Defines terminology used by the typing system
+│   │
+│   ├── Defining Type System Concepts
+│   │   ├── Theme: Key Feature
+│   │   └── Introduces concepts required for static analysis
+│   │
+│   ├── Supporting Multiple Type Definition Mechanisms
+│   │   ├── Theme: Key Feature
+│   │   └── Allows different ways of defining user and built-in types
+│   │
+│   ├── Enabling User-Defined Types for Static Checking
+│   │   ├── Theme: Key Feature
+│   │   └── Supports custom types created by developers
+│   │
+│   ├── Optional Static Type Checking
+│   │   ├── Theme: Key Feature
+│   │   └── Enables analysis without runtime enforcement
+│   │
+│   ├── Supported Type Hint Forms and Type Expressions
+│   │   ├── Theme: Key Feature
+│   │   └── Defines supported annotation forms
+│   │
+│   ├── Support for Type Aliases
+│   │   ├── Theme: Key Feature
+│   │   └── Allows naming reusable type expressions
+│   │
+│   ├── Support for Callable Type Annotations
+│   │   ├── Theme: Key Feature
+│   │   └── Represents function signatures as types
+│   │
+│   ├── Generic Types and Type Variables
+│   │   ├── Theme: Key Feature
+│   │   └── Supports parameterized reusable types
+│   │
+│   ├── Type Variables
+│   │   ├── Theme: Key Feature
+│   │   └── Defines symbolic types used in generics
+│   │
+│   ├── Type Variable Scoping and Binding Rules
+│   │   ├── Theme: Key Feature
+│   │   └── Defines where type variables are valid
+│   │
+│   ├── Generic Type Instantiation Behavior
+│   │   ├── Theme: Key Feature
+│   │   └── Defines generic type creation rules
+│   │
+│   ├── Generic Inheritance and User-Defined Generic Types
+│   │   ├── Theme: Key Feature
+│   │   └── Allows user classes to participate in generic typing
+│   │
+│   ├── Support for Generic User-Defined Classes
+│   │   ├── Theme: Key Feature
+│   │   └── Enables generic class declarations
+│   │
+│   ├── Advanced Type Variable Constraints
+│   │   ├── Theme: Key Feature
+│   │   └── Supports constrained and bounded type variables
+│   │
+│   ├── Variance Support in Generic Types
+│   │   ├── Theme: Key Feature
+│   │   └── Defines covariance and contravariance behavior
+│   │
+│   ├── Numeric Type Compatibility Rules
+│   │   ├── Theme: Design Decision
+│   │   └── Defines compatibility between numeric types
+│   │
+│   ├── Support for Forward References in Type Annotations
+│   │   ├── Theme: Key Feature
+│   │   └── Allows references to types declared later
+│   │
+│   ├── Support for Union and Optional Types
+│   │   ├── Theme: Key Feature
+│   │   └── Represents multiple possible types
+│   │
+│   ├── Union, Optional, Tuple, and Callable Type Expressions
+│   │   ├── Theme: Key Feature
+│   │   └── Provides common composite typing structures
+│   │
+│   ├── Support for Precise Typing with Enumerated Values
+│   │   ├── Theme: Key Feature
+│   │   └── Supports precise value-level typing
+│   │
+│   ├── Support for Any Type and Gradual Typing
+│   │   ├── Theme: Key Feature
+│   │   └── Allows incomplete typing through Any
+│   │
+│   ├── Gradual Typing and Advanced Type System Support
+│   │   ├── Theme: Key Feature
+│   │   └── Enables incremental adoption of static typing
+│   │
+│   ├── Support for NoReturn Type Annotation
+│   │   ├── Theme: Key Feature
+│   │   └── Represents functions that never return
+│   │
+│   ├── Support for Type Objects and Class Type Annotations
+│   │   ├── Theme: Key Feature
+│   │   └── Represents classes as values
+│   │
+│   ├── Support for Generic Class and Instance Method Annotations
+│   │   ├── Theme: Key Feature
+│   │   └── Supports methods operating on generic classes
+│   │
+│   ├── Support for Generator and Coroutine Type Annotations
+│   │   ├── Theme: Key Feature
+│   │   └── Represents asynchronous and generator behavior
+│   │
+│   ├── Support for Explicit Type Casting
+│   │   ├── Theme: Key Feature
+│   │   └── Allows developer-provided type assumptions
+│   │
+│   ├── Support for Defining New User-Specific Types
+│   │   ├── Theme: Key Feature
+│   │   └── Allows creation of custom typing constructs
+│   │
+│   ├── Function and Method Overloading
+│   │   ├── Theme: Key Feature
+│   │   └── Supports multiple callable signatures
+│   │
+│   ├── Type Compatibility and Subtyping
+│   │   ├── Theme: Design Decision / Key Feature
+│   │   └── Defines safe assignment relationships between types
+│   │
+│   ├── Type Compatibility and Subtyping Rules
+│   │   ├── Theme: Type Checking Rules
+│   │   └── Specifies subtype relationships
+│   │
+│   └── Type System Design Decisions
+│       ├── Theme: Design Decision
+│       └── Documents choices shaping the typing system
+│
+
+
+├── Typing Module
+│
+│   ├── Introduction of Typing Module
+│   │   ├── Theme: Key Feature
+│   │   └── Introduces standard typing utilities
+│   │
+│   ├── Expansion of Type Hinting Utilities
+│   │   ├── Theme: Key Feature
+│   │   └── Extends available typing constructs
+│   │
+│   ├── Support for Generic Collection Type Annotations
+│   │   ├── Theme: Key Feature
+│   │   └── Provides typing for collections
+│   │
+│   └── Type Variable Utilities
+│       ├── Theme: Key Feature
+│       └── Provides helpers for generic typing
+│
+
+
+├── Type Checking Control
+│
+│   ├── Static Type Checking Guidelines
+│   │   ├── Theme: Design Decision
+│   │   └── Provides recommendations for checkers
+│   │
+│   ├── Support for Disabling Type Checking
+│   │   ├── Theme: Key Feature
+│   │   └── Allows selective disabling of checking
+│   │
+│   ├── Support for Disabling or Ignoring Type Checking
+│   │   ├── Theme: Key Feature
+│   │   └── Supports ignored errors
+│   │
+│   ├── Ignoring Type Errors
+│   │   ├── Theme: Key Feature
+│   │   └── Allows developers to bypass specific checks
+│   │
+│   └── Runtime vs Static Checking Separation
+│       ├── Theme: Design Decision
+│       └── Separates runtime execution from static validation
+│
+
+
+├── Stub Files and Type Distribution
+│
+│   ├── Support for Stub Files
+│   │   ├── Theme: Key Feature
+│   │   └── Enables external type information files
+│   │
+│   ├── Stub File-Based Type Distribution
+│   │   ├── Theme: Key Feature
+│   │   └── Defines distribution of typing information
+│   │
+│   ├── Support for Variable Annotations in Stubs
+│   │   ├── Theme: Key Feature
+│   │   └── Allows variable annotations in .pyi files
+│   │
+│   ├── Support for Third-Party Stub File Distribution
+│   │   ├── Theme: Key Feature
+│   │   └── Enables external typing packages
+│   │
+│   ├── Support for Versioned Stub Files
+│   │   ├── Theme: Key Feature
+│   │   └── Allows version-specific type definitions
+│   │
+│   ├── Support for Centralized Stub Repository (Typeshed)
+│   │   ├── Theme: Key Feature
+│   │   └── Provides centralized type information
+│   │
+│   └── Rejection of Documentation-Based Type Declarations
+│       ├── Theme: Design Decision
+│       └── Rejects docstrings as the main typing mechanism
+│
+
+
+├── Developer Tooling and Ecosystem Support
+│
+│   ├── Third-Party Annotation Consumers
+│   │   ├── Theme: Adoption Practice
+│   │   └── Supports external tools consuming annotations
+│   │
+│   ├── Support for Static Analysis and Developer Tools
+│   │   ├── Theme: Benefits
+│   │   └── Enables IDEs and analyzers
+│   │
+│   ├── Support for Runtime Type Checking Tools
+│   │   ├── Theme: Benefits / Adoption Practice
+│   │   └── Enables runtime validation frameworks
+│   │
+│   ├── Integration with Standard Library Tools
+│   │   ├── Theme: Adoption Practice
+│   │   └── Integrates typing utilities into Python
+│   │
+│   └── Exposing Annotations Through Introspection APIs
+│       ├── Theme: Adoption Practice
+│       └── Allows runtime retrieval of annotations
+│
+
+
+├── Compatibility and Adoption
+│
+│   ├── Backward Compatibility with Previous Python Versions
+│   │   ├── Theme: Key Feature
+│   │   └── Maintains compatibility with older versions
+│   │
+│   ├── Preserving Backward Compatibility of Annotations
+│   │   ├── Theme: Compatibility
+│   │   └── Avoids breaking existing annotation usage
+│   │
+│   ├── Gradual Adoption of Type Hints
+│   │   ├── Theme: Evolution of Type Hinting
+│   │   └── Allows incremental migration
+│   │
+│   └── Gradual Adoption
+│       ├── Theme: Adoption Practice
+│       └── Supports progressive typing adoption
+│

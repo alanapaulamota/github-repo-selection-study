@@ -1,0 +1,73 @@
+Group,Code,Theme,Definition,Inclusion Criteria
+Motivation & Goals,Annotation Use Cases,Motivation,Identificação dos objetivos gerais para introdução de anotações no Python.,"Trechos que discutem documentação, prevenção de bugs, ferramentas ou melhoria do desenvolvimento."
+Motivation & Goals,Standardizing Type Annotation Semantics,Motivation,Necessidade de estabelecer uma interpretação consistente para anotações de tipos.,Discussões sobre padronização do significado de type hints.
+Motivation & Goals,Standardizing Type Annotation Syntax,Motivation,Necessidade de uma sintaxe comum para representar tipos.,Discussões sobre padronização da escrita de annotations.
+Motivation & Goals,Introduction of Type Hints for Variables and Functions,Motivation,Expansão do uso de type hints para funções e variáveis.,Trechos que apresentam a introdução inicial de type hints.
+Annotation Design,Annotations as Arbitrary Expressions,Design Decision,Permitir que annotations sejam expressões Python genéricas.,Trechos indicando que Python não restringe o conteúdo das annotations.
+Annotation Design,Maintaining Annotation Extensibility,Design Decision,Preservação da possibilidade de usos futuros das annotations.,Discussões sobre não limitar annotations apenas a tipos.
+Annotation Design,No Built-in Semantics for Annotations,Design Decision,Annotations não possuem comportamento obrigatório pelo interpretador.,Trechos indicando que ferramentas externas definem o significado.
+Annotation Design,Keeping Annotation Semantics Outside the Standard Library,Design Decision,Evitar impor um sistema único dentro da linguagem.,Discussões sobre responsabilidade de ferramentas externas.
+Annotation Design,Rejecting Generator Annotation Syntax,Design Decision,Rejeição de sintaxe alternativa para generators.,Propostas rejeitadas relacionadas a generator annotations.
+Annotation Design,Rejecting Standard Type Parameterization Syntax,Design Decision,Rejeição de sintaxe própria para parametrização de tipos.,Discussões sobre manter parametrização no módulo typing.
+Annotation Design,Rejecting Annotation Interoperability Standardization,Design Decision,Rejeição de padronização obrigatória entre consumidores de annotations.,Trechos sobre diferentes ferramentas interpretando annotations.
+Type Annotation Syntax,Function Type Annotation Syntax,Syntax,Sintaxe para anotação de funções.,Exemplos de funções contendo annotations.
+Type Annotation Syntax,Parameter Annotation Syntax,Syntax,Sintaxe para anotação de parâmetros.,Uso de annotations em argumentos.
+Type Annotation Syntax,Return Annotation Syntax,Syntax,Sintaxe para anotação de valores retornados.,Uso de -> Type em funções.
+Type Annotation Syntax,Support for Type Comments,Key Feature,Uso de comentários como mecanismo inicial de anotação.,Uso de # type: comments.
+Type Annotation Syntax,Improving Type Annotation Syntax,Motivation,Melhorias em relação ao modelo baseado em comentários.,"Problemas de legibilidade, parsing e suporte por ferramentas."
+Type Annotation Syntax,Standardizing Type Annotation Syntax,Design Decision,Definição de uma forma oficial de escrita.,Escolha da sintaxe PEP 3107.
+Type Annotation Syntax,Preserving Annotation Flexibility,Design Decision,Manutenção da flexibilidade das annotations.,Discussões sobre permitir diferentes usos.
+Type Annotation Syntax,Preserving Runtime Evaluation Semantics,Design Decision,Manter avaliação das annotations em runtime.,Discussões sobre introspecção e acesso às annotations.
+Type Annotation Syntax,Runtime Annotation Storage Management,Design Decision,Controle do armazenamento das annotations.,Trechos sobre __annotations__.
+Type Annotation Syntax,Excluding Lambda Annotations,Syntax Limitation,Limitação da aplicação de annotations em lambdas.,Regras sintáticas relacionadas a lambda.
+Type Annotation Syntax,Restriction of Ambiguous Assignment Annotations,Design Decision,Evitar construções ambíguas na sintaxe.,"Chained assignments, unpacking e construções complexas."
+Variable Annotations,Introducing Native Variable Annotation Syntax,Motivation,Introdução da sintaxe nativa para anotar variáveis.,Uso de variable: Type.
+Variable Annotations,Evolution from Type Comments to Variable Annotations,Evolution of Type Hinting,Migração de comentários para sintaxe nativa.,Comparação entre # type: e annotations.
+Variable Annotations,Type Comments as Previous Variable Annotation Mechanism,Previous Approach,Representação anterior de tipos usando comentários.,Exemplos com variável # type: Type.
+Variable Annotations,Extending Type Annotation Support to Variable Categories,Key Feature,"Suporte a variáveis locais, globais, classe e instância.",Anotações fora de parâmetros e retornos.
+Variable Annotations,Standardizing Variable Annotation Syntax,Design Decision,Definição da sintaxe oficial para variáveis.,Regras de escrita variable: Type.
+Variable Annotations,Scope Semantics of Variable Annotations,Design Decision,Definição do comportamento por escopo.,"Variáveis locais, globais e de classe."
+Variable Annotations,Non-Initialization of Annotated Variables,Design Decision,Permitir declaração sem inicialização.,Exemplo x: int.
+Variable Annotations,Default Treatment of Instance Variables,Design Decision,Definir comportamento padrão para atributos de instância.,Diferenciação entre class variable e instance variable.
+Variable Annotations,Class-Level Organization of Instance Annotations,Design Decision,Organização das anotações de instâncias no corpo da classe.,Anotações fora do __init__.
+Variable Annotations,Support for Class Variable Type Distinction,Design Decision,Diferenciação de variáveis de classe usando ClassVar.,Uso de ClassVar.
+Type System Design,Optional Static Type Checking,Key Feature,Sistema opcional de verificação estática.,Uso de type checkers opcionais.
+Type System Design,Static Typing Support within a Dynamic Language,Design Decision,Adicionar tipos mantendo a natureza dinâmica do Python.,Discussões sobre Python continuar dinamicamente tipado.
+Type System Design,Support for Any Type and Gradual Typing,Key Feature,Suporte a tipagem gradual usando Any.,Uso de Any e migração incremental.
+Type System Design,Support for Union and Optional Types,Key Feature,Representação de múltiplos tipos possíveis.,Uso de Union e Optional.
+Type System Design,Support for Callable Type Annotations,Key Feature,Tipagem de funções como valores.,Uso de Callable.
+Type System Design,Support for Type Aliases,Key Feature,Criação de nomes alternativos para tipos.,Uso de aliases.
+Type System Design,Generic Types and Type Variables,Key Feature,Suporte a tipos parametrizados.,Uso de Generic e TypeVar.
+Type System Design,Support for Generic User-Defined Classes,Key Feature,Criação de classes genéricas pelo usuário.,Classes herdando Generic.
+Type System Design,Type Variable Scoping and Binding Rules,Key Feature,Regras para TypeVar.,Inferência e restrições de variáveis de tipo.
+Type System Design,Advanced Type Variable Constraints,Key Feature,Restrições avançadas de TypeVar.,Bounded e constrained TypeVar.
+Type System Design,Variance Support in Generic Types,Key Feature,Suporte a covariância e contravariância.,Uso de covariant=True e contravariant=True.
+Type System Design,Type Compatibility and Subtyping,Key Feature,Definição das relações de subtipo.,Regras de compatibilidade entre tipos.
+Type System Design,Numeric Type Compatibility Rules,Design Decision,Regras específicas para tipos numéricos.,"Compatibilidade entre int, float e complex."
+Type System Design,Support for Forward References,Key Feature,Permitir referências futuras em annotations.,Uso de strings em tipos.
+Type System Design,Support for Explicit Type Casting,Key Feature,Conversão explícita para type checker.,Uso de cast().
+Type System Design,Support for Defining New User-Specific Types,Key Feature,Criação de novos tipos pelo usuário.,Uso de NewType.
+Type System Design,Function and Method Overloading,Key Feature,Representação de múltiplas assinaturas.,Uso de @overload.
+Type System Design,Support for NoReturn Type Annotation,Key Feature,Representação de funções sem retorno.,Uso de NoReturn.
+Type System Design,Support for Type Objects and Class Type Annotations,Key Feature,Tipagem de objetos classe.,Uso de Type[].
+Type System Design,Support for Generic Collection Type Annotations,Key Feature,Anotação de coleções genéricas.,"List, Dict, Tuple, Sequence."
+Type System Design,Introduction of Typing Module,Key Feature,Criação do módulo typing.,Importação de tipos auxiliares.
+Type System Design,Expansion of Type Hinting Utilities,Key Feature,Utilitários adicionais de tipagem.,"Optional, NamedTuple, cast, overload."
+Type System Design,Support for Generator and Coroutine Type Annotations,Key Feature,Tipagem de generators e coroutines.,Uso de Generator e Coroutine.
+Stub Files & Type Distribution,Support for Stub Files,Key Feature,Suporte a arquivos externos de tipos.,Uso de arquivos .pyi.
+Stub Files & Type Distribution,Stub File-Based Type Distribution,Key Feature,Distribuição de tipos através de stubs.,Arquivos somente para type checkers.
+Stub Files & Type Distribution,Support for Variable Annotations in Stubs,Key Feature,Uso de variable annotations em stubs.,Declarações em arquivos .pyi.
+Stub Files & Type Distribution,Support for Third-Party Stub File Distribution,Key Feature,Distribuição de stubs externos.,Pacotes de terceiros.
+Stub Files & Type Distribution,Support for Versioned Stub Files,Key Feature,Versionamento de stubs.,Compatibilidade entre versões.
+Stub Files & Type Distribution,Support for Centralized Stub Repository (Typeshed),Key Feature,Repositório centralizado de stubs.,Uso de typeshed.
+Developer Tooling & Ecosystem Support,Support for Static Analysis and Developer Tools,Benefits,Suporte a ferramentas de análise estática.,"mypy, IDEs e analisadores."
+Developer Tooling & Ecosystem Support,Support for Runtime Type Checking Tools,Benefits,Suporte a ferramentas que verificam tipos em runtime.,Ferramentas externas de runtime.
+Developer Tooling & Ecosystem Support,Third-party Annotation Consumers,Adoption Practice,Uso das annotations por terceiros.,Bibliotecas e ferramentas externas.
+Developer Tooling & Ecosystem Support,Exposing Annotations Through Introspection APIs,Adoption Practice,Acesso às annotations via introspecção.,get_type_hints e __annotations__.
+Type Checking Control,Ignoring Type Errors,Key Feature,Permitir ignorar erros de tipagem.,# type: ignore.
+Type Checking Control,Runtime vs Static Checking Separation,Design Decision,Separação entre verificação estática e execução.,Annotations não alteram execução.
+Type Checking Control,Static Type Checking Guidelines,Design Decision,Orientações para ferramentas de verificação.,Regras recomendadas para type checkers.
+Compatibility & Adoption,Backward Compatibility with Previous Python Versions,Compatibility,Manutenção de compatibilidade entre versões.,Python 2 e Python 3.
+Compatibility & Adoption,Preserving Backward Compatibility of Annotations,Compatibility,Não quebrar annotations existentes.,Compatibilidade com PEPs anteriores.
+Compatibility & Adoption,Gradual Adoption of Type Hints,Evolution of Type Hinting,Adoção progressiva de type hints.,Uso opcional e incremental.
+Compatibility & Adoption,Gradual Adoption,Adoption Practice,Adoção gradual pela comunidade.,Introdução progressiva das práticas.

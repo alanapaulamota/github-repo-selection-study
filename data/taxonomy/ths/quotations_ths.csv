@@ -1,0 +1,699 @@
+document,quotation,Group,Codes,Themes
+3107,"Function annotations, both for parameters and return values, are completely optional.",Annotation Design,Optional Function Annotations,Syntax
+3107,Function annotations are nothing more than a way of associating arbitrary Python expressions with various parts of a function at compile-time.,Type Annotation Syntax,Arbitrary Expressions as Annotation Values,Design Decision
+3107,"By itself, Python does not attach any particular meaning or significance to annotations. Left to its own, Python simply makes these expressions available as described in Accessing Function Annotations below.",Type Annotation Syntax,No Built-in Semantics for Annotations,Design Decision
+3107,"The only way that annotations take on meaning is when they are interpreted by third-party libraries. These annotation consumers can do anything they want with a function’s annotations. For example, one library might use string-based annotations to provide improved help messages, like so:
+
+def compile(source: ""something compilable"",             filename: ""where the compilable thing comes from"",             mode: ""is this a single statement or a suite?""):     ... ",Annotation Design,Annotations as Arbitrary Expressions,Design Decision
+3107,"Another library might be used to provide typechecking for Python functions and methods. This library could use annotations to indicate the function’s expected input and return types, possibly something like:
+
+def haul(item: Haulable, *vargs: PackAnimal) -> Distance:     ... 
+
+However, neither the strings in the first example nor the type information in the second example have any meaning on their own; meaning comes from third-party libraries alone.
+
+Following from point 2, this PEP makes no attempt to introduce any kind of standard semantics, even for the built-in types. This work will be left to third-party libraries.",Developer Tooling & Ecosystem Support,Third-party Annotation Consumers,Adoption Practice
+3107,"Another library might be used to provide typechecking for Python functions and methods. This library could use annotations to indicate the function’s expected input and return types, possibly something like:
+
+def haul(item: Haulable, *vargs: PackAnimal) -> Distance:     ... 
+
+However, neither the strings in the first example nor the type information in the second example have any meaning on their own; meaning comes from third-party libraries alone.
+
+Following from point 2, this PEP makes no attempt to introduce any kind of standard semantics, even for the built-in types. This work will be left to third-party libraries.",Developer Tooling & Ecosystem Support,Third-party Annotation Consumers,Adoption Practice
+,"Annotations for parameters take the form of optional expressions that follow the parameter name:
+
+def foo(a: expression, b: expression = 5):     ... 
+
+In pseudo-grammar, parameters now look like identifier [: expression] [= expression]. That is, annotations always precede a parameter’s default value and both annotations and default values are optional. Just like how equal signs are used to indicate a default value, colons are used to mark annotations. All annotation expressions are evaluated when the function definition is executed, just like default values.
+
+Annotations for excess parameters (i.e., *args and **kwargs) are indicated similarly:
+
+def foo(*args: expression, **kwargs: expression):     ... 
+
+Annotations for nested parameters always follow the name of the parameter, not the last parenthesis. Annotating all parameters of a nested parameter is not required:
+
+def foo((x1, y1: expression),         (x2: expression, y2: expression)=(None, None)):     ... ",Type Annotation Syntax,Parameter Annotation Syntax,Syntax
+3107,"Annotations for parameters take the form of optional expressions that follow the parameter name:
+
+def foo(a: expression, b: expression = 5):     ... 
+
+In pseudo-grammar, parameters now look like identifier [: expression] [= expression]. That is, annotations always precede a parameter’s default value and both annotations and default values are optional. Just like how equal signs are used to indicate a default value, colons are used to mark annotations. All annotation expressions are evaluated when the function definition is executed, just like default values.
+
+Annotations for excess parameters (i.e., *args and **kwargs) are indicated similarly:
+
+def foo(*args: expression, **kwargs: expression):     ... 
+
+Annotations for nested parameters always follow the name of the parameter, not the last parenthesis. Annotating all parameters of a nested parameter is not required:
+
+def foo((x1, y1: expression),         (x2: expression, y2: expression)=(None, None)):     ... ",Annotation Design,Annotations as Arbitrary Expressions,Design Decision
+3107,"The examples thus far have omitted examples of how to annotate the type of a function’s return value. This is done like so:
+
+def sum() -> expression:     ... 
+
+That is, the parameter list can now be followed by a literal -> and a Python expression. Like the annotations for parameters, this expression will be evaluated when the function definition is executed.
+
+The grammar for function definitions [11] is now:
+
+decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE decorators: decorator+ funcdef: [decorators] 'def' NAME parameters ['->' test] ':' suite parameters: '(' [typedargslist] ')' typedargslist: ((tfpdef ['=' test] ',')*                 ('*' [tname] (',' tname ['=' test])* [',' '**' tname]                  | '**' tname)                 | tfpdef ['=' test] (',' tfpdef ['=' test])* [',']) tname: NAME [':' test] tfpdef: tname | '(' tfplist ')' tfplist: tfpdef (',' tfpdef)* [','] ",Type Annotation Syntax,Return Annotation Syntax,Syntax
+3107,"lambda’s syntax does not support annotations. The syntax of lambda could be changed to support annotations, by requiring parentheses around the parameter list. However it was decided [12] not to make this change because:
+
+It would be an incompatible change.
+
+Lambdas are neutered anyway.
+
+The lambda can always be changed to a function.",Annotation Syntax,Excluding Lambda Annotations,Syntax Limitations
+3107,"Once compiled, a function’s annotations are available via the function’s __annotations__ attribute. This attribute is a mutable dictionary, mapping parameter names to an object representing the evaluated annotation expression
+
+There is a special key in the __annotations__ mapping, ""return"". This key is present only if an annotation was supplied for the function’s return value.
+
+For example, the following annotation:
+
+def foo(a: 'x', b: 5 + 6, c: list) -> max(2, 9):     ... 
+
+would result in an __annotations__ mapping of
+
+{'a': 'x',  'b': 11,  'c': list,  'return': 9} 
+
+The return key was chosen because it cannot conflict with the name of a parameter; any attempt to use return as a parameter name would result in a SyntaxError.
+
+__annotations__ is an empty, mutable dictionary if there are no annotations on the function or if the functions was created from a lambda expression.",Annotation Syntax,Function Annotation Metadata,Syntax
+3107,"In the course of discussing annotations, a number of use-cases have been raised. Some of these are presented here, grouped by what kind of information they convey. Also included are examples of existing products and packages that could make use of annotations.
+
+Providing typing information
+
+Type checking ([3], [4])
+
+Let IDEs show what types a function expects and returns ([16])
+
+Function overloading / generic functions ([21])
+
+Foreign-language bridges ([17], [18])
+
+Adaptation ([20], [19])
+
+Predicate logic functions
+
+Database query mapping
+
+RPC parameter marshaling ([22])
+
+Other information
+
+Documentation for parameters and return values ([23])",Motivation & Goals,Annotation Use Cases,Motivation
+3107,The pydoc module should display the function annotations when displaying help for a function. The inspect module should change to support annotations.,Developer Tooling & Ecosystem Support,Integration with Standard Library Tools,Adoption Practice
+3107,Function Signature Objects should expose the function’s annotations. The Parameter object may change or other changes may be warranted.,Developer Tooling & Ecosystem Support,Exposing Annotations Through Introspection APIs,Adoption Practice
+3107,The BDFL rejected the author’s idea for a special syntax for adding annotations to generators as being “too ugly” [2].,Annotation Design,Rejecting Generator Annotation Syntax,Design Decision
+3107,"Though discussed early on ([5], [6]), including special objects in the stdlib for annotating generator functions and higher-order functions was ultimately rejected as being more appropriate for third-party libraries; including them in the standard library raised too many thorny issues.",Annotation Design,Keeping Annotation Semantics Outside the Standard Library,Design Decision
+3107,"Despite considerable discussion about a standard type parameterisation syntax, it was decided that this should also be left to third-party libraries. ([7], [8], [9]).",Annotation Design,Rejecting Standard Type Parameterization Syntax,Design Decision
+3107,"Despite yet more discussion, it was decided not to standardize a mechanism for annotation interoperability. Standardizing interoperability conventions at this point would be premature. We would rather let these conventions develop organically, based on real-world usage and necessity, than try to force all users into some contrived scheme. ([13], [14], [15]).",Type System Design,Rejecting Annotation Interoperability Standardization,Design Decision
+484,"PEP 3107 introduced syntax for function annotations, but the semantics were deliberately left undefined. There has now been enough 3rd party usage for static type analysis that the community would benefit from a standard vocabulary and baseline tools within the standard library.",Motivation & Goals,Standardizing Type Annotation Semantics,Motivation
+484,"Note that this PEP still explicitly does NOT prevent other uses of annotations, nor does it require (or forbid) any particular processing of annotations, even when they conform to this specification. It simply enables better coordination, as PEP 333 did for web frameworks.",Annotation Design,Maintaining Annotation Extensibility,Design Decision
+484,"While these annotations are available at runtime through the usual __annotations__ attribute, no type checking happens at runtime. Instead, the proposal assumes the existence of a separate off-line type checker which users can run over their source code voluntarily. Essentially, such a type checker acts as a very powerful linter. (While it would of course be possible for individual users to employ a similar checker at run time for Design By Contract enforcement or JIT optimization, those tools are not yet as mature.)",Type System Design,Optional Static Type Checking,Key Feature
+484,"The proposal is strongly inspired by mypy. For example, the type “sequence of integers” can be written as Sequence[int]. The square brackets mean that no new syntax needs to be added to the language. The example here uses a custom type Sequence, imported from a pure-Python module typing. The Sequence[int] notation works at runtime by implementing __getitem__() in the metaclass (but its significance is primarily to an offline type checker).",Type System Design,Support for Generic Types,Key Feature
+484,"he type system supports unions, generic types, and a special type named Any which is consistent with (i.e. assignable to and from) all types. This latter feature is taken from the idea of gradual typing. Gradual typing and the full type system are explained in PEP 483.",Type System Design,Gradual Typing and Advanced Type System Support,Key Feature
+484,"This PEP aims to provide a standard syntax for type annotations, opening up Python code to easier static analysis and refactoring, potential runtime type checking, and (perhaps, in some contexts) code generation utilizing type information.",Motivation & Goals,Standardizing Type Annotation Syntax,Motivation
+484,"Of these goals, static analysis is the most important. This includes support for off-line type checkers such as mypy, as well as providing a standard notation that can be used by IDEs for code completion and refactoring.",Developer Tooling & Ecosystem Support,Support for Static Analysis and Developer Tools,Benefits
+484,"While the proposed typing module will contain some building blocks for runtime type checking – in particular the get_type_hints() function – third party packages would have to be developed to implement specific runtime type checking functionality, for example using decorators or metaclasses. Using type hints for performance optimizations is left as an exercise for the reader. It should also be emphasized that Python will remain a dynamically typed language, and the authors have no desire to ever make type hints mandatory, even by convention.",Developer Tooling & Ecosystem Support,Support for Runtime Type Checking Tools,Adoption Practice
+484,"Any function without annotations should be treated as having the most general type possible, or ignored, by any type checker. Functions with the @no_type_check decorator should be treated as having no annotations.
+
+It is recommended but not required that checked functions have annotations for all arguments and the return type. For a checked function, the default annotation for arguments and for the return type is Any. An exception is the first argument of instance and class methods. If it is not annotated, then it is assumed to have the type of the containing class for instance methods, and a type object type corresponding to the containing class object for class methods. For example, in class A the first argument of an instance method has the implicit type A. In a class method, the precise type of the first argument cannot be represented using the available type notation.
+
+(Note that the return type of __init__ ought to be annotated with -> None. The reason for this is subtle. If __init__ assumed a return annotation of -> None, would that mean that an argument-less, un-annotated __init__ method should still be type-checked? Rather than leaving this ambiguous or introducing an exception to the exception, we simply say that __init__ ought to have a return annotation; the default behavior is thus the same as for other methods.)
+
+A type checker is expected to check the body of a checked function for consistency with the given annotations. The annotations may also be used to check correctness of calls appearing in other checked functions.
+
+Type checkers are expected to attempt to infer as much information as necessary. The minimum requirement is to handle the builtin decorators @property, @staticmethod and @classmethod.",Type Checking Control,Static Type Checking Guidelines,Design Decision
+484,"The syntax leverages PEP 3107-style annotations with a number of extensions described in sections below. In its basic form, type hinting is used by filling function annotation slots with classes:
+
+def greeting(name: str) -> str:     return 'Hello ' + name 
+
+This states that the expected type of the name argument is str. Analogically, the expected return type is str.
+
+Expressions whose type is a subtype of a specific argument type are also accepted for that argument.",Type Annotation Syntax,Function Type Annotation Syntax,Syntax
+484,"Type hints may be built-in classes (including those defined in standard library or third-party extension modules), abstract base classes, types available in the types module, and user-defined classes (including those defined in the standard library or third-party modules).
+
+While annotations are normally the best format for type hints, there are times when it is more appropriate to represent them by a special comment, or in a separately distributed stub file. (See below for examples.)
+
+Annotations must be valid expressions that evaluate without raising exceptions at the time the function is defined (but see below for forward references).
+
+Annotations should be kept simple or static analysis tools may not be able to interpret the values. For example, dynamically computed types are unlikely to be understood. (This is an intentionally somewhat vague requirement, specific inclusions and exclusions may be added to future versions of this PEP as warranted by the discussion.)
+
+In addition to the above, the following special constructs defined below may be used: None, Any, Union, Tuple, Callable, all ABCs and stand-ins for concrete classes exported from typing (e.g. Sequence and Dict), type variables, and type aliases.
+
+All newly introduced names used to support features described in following sections (such as Any and Union) are available in the typing module.",Stub Files & Type Distribution,Stub File-Based Type Distribution,Key Feature
+484,"Type hints may be built-in classes (including those defined in standard library or third-party extension modules), abstract base classes, types available in the types module, and user-defined classes (including those defined in the standard library or third-party modules).
+
+While annotations are normally the best format for type hints, there are times when it is more appropriate to represent them by a special comment, or in a separately distributed stub file. (See below for examples.)
+
+Annotations must be valid expressions that evaluate without raising exceptions at the time the function is defined (but see below for forward references).
+
+Annotations should be kept simple or static analysis tools may not be able to interpret the values. For example, dynamically computed types are unlikely to be understood. (This is an intentionally somewhat vague requirement, specific inclusions and exclusions may be added to future versions of this PEP as warranted by the discussion.)
+
+In addition to the above, the following special constructs defined below may be used: None, Any, Union, Tuple, Callable, all ABCs and stand-ins for concrete classes exported from typing (e.g. Sequence and Dict), type variables, and type aliases.
+
+All newly introduced names used to support features described in following sections (such as Any and Union) are available in the typing module.",Type System Design,Supported Type Hint Forms and Type Expressions,Key Feature
+484,"Type aliases are defined by simple variable assignments:
+
+Url = str  def retry(url: Url, retry_count: int) -> None: ... 
+
+Note that we recommend capitalizing alias names, since they represent user-defined types, which (like user-defined classes) are typically spelled that way.
+
+Type aliases may be as complex as type hints in annotations – anything that is acceptable as a type hint is acceptable in a type alias:
+
+from typing import TypeVar, Iterable, Tuple  T = TypeVar('T', int, float, complex) Vector = Iterable[Tuple[T, T]]  def inproduct(v: Vector[T]) -> T:     return sum(x*y for x, y in v) def dilate(v: Vector[T], scale: T) -> Vector[T]:     return ((x * scale, y * scale) for x, y in v) vec = []  # type: Vector[float] 
+
+This is equivalent to:
+
+from typing import TypeVar, Iterable, Tuple  T = TypeVar('T', int, float, complex)  def inproduct(v: Iterable[Tuple[T, T]]) -> T:     return sum(x*y for x, y in v) def dilate(v: Iterable[Tuple[T, T]], scale: T) -> Iterable[Tuple[T, T]]:     return ((x * scale, y * scale) for x, y in v) vec = []  # type: Iterable[Tuple[float, float]] ",Type System Design,Support for Type Aliases,Key Feature
+484,"Frameworks expecting callback functions of specific signatures might be type hinted using Callable[[Arg1Type, Arg2Type], ReturnType]. Examples:
+
+from typing import Callable  def feeder(get_next_item: Callable[[], str]) -> None:     # Body  def async_query(on_success: Callable[[int], None],                 on_error: Callable[[int, Exception], None]) -> None:     # Body 
+
+It is possible to declare the return type of a callable without specifying the call signature by substituting a literal ellipsis (three dots) for the list of arguments:
+
+def partial(func: Callable[..., str], *args) -> Callable[..., str]:     # Body 
+
+Note that there are no square brackets around the ellipsis. The arguments of the callback are completely unconstrained in this case (and keyword arguments are acceptable).
+
+Since using callbacks with keyword arguments is not perceived as a common use case, there is currently no support for specifying keyword arguments with Callable. Similarly, there is no support for specifying callback signatures with a variable number of arguments of a specific type.
+
+Because typing.Callable does double-duty as a replacement for collections.abc.Callable, isinstance(x, typing.Callable) is implemented by deferring to isinstance(x, collections.abc.Callable). However, isinstance(x, typing.Callable[...]) is not supported.",Type System Design,Support for Callable Type Annotations,Key Feature
+484,"Since type information about objects kept in containers cannot be statically inferred in a generic way, abstract base classes have been extended to support subscription to denote expected types for container elements. Example:
+
+from typing import Mapping, Set  def notify_by_email(employees: Set[Employee], overrides: Mapping[str, str]) -> None: ... 
+
+Generics can be parameterized by using a new factory available in typing called TypeVar. Example:
+
+from typing import Sequence, TypeVar  T = TypeVar('T')      # Declare type variable  def first(l: Sequence[T]) -> T:   # Generic function     return l[0] 
+
+In this case the contract is that the returned value is consistent with the elements held by the collection.
+
+A TypeVar() expression must always directly be assigned to a variable (it should not be used as part of a larger expression). The argument to TypeVar() must be a string equal to the variable name to which it is assigned. Type variables must not be redefined.
+
+TypeVar supports constraining parametric types to a fixed set of possible types (note: those types cannot be parameterized by type variables). For example, we can define a type variable that ranges over just str and bytes. By default, a type variable ranges over all possible types. Example of constraining a type variable:
+
+from typing import TypeVar, Text  AnyStr = TypeVar('AnyStr', Text, bytes)  def concat(x: AnyStr, y: AnyStr) -> AnyStr:     return x + y 
+
+The function concat can be called with either two str arguments or two bytes arguments, but not with a mix of str and bytes arguments.
+
+There should be at least two constraints, if any; specifying a single constraint is disallowed.
+
+Subtypes of types constrained by a type variable should be treated as their respective explicitly listed base types in the context of the type variable. Consider this example:
+
+class MyStr(str): ...  x = concat(MyStr('apple'), MyStr('pie')) 
+
+The call is valid but the type variable AnyStr will be set to str and not MyStr. In effect, the inferred type of the return value assigned to x will also be str.
+
+Additionally, Any is a valid value for every type variable. Consider the following:
+
+def count_truthy(elements: List[Any]) -> int:     return sum(1 for elem in elements if elem) 
+
+This is equivalent to omitting the generic notation and just saying elements: List.",Type System Design,Generic Types and Type Variables,Key Feature
+484,"You can include a Generic base class to define a user-defined class as generic. Example:
+
+from typing import TypeVar, Generic from logging import Logger  T = TypeVar('T')  class LoggedVar(Generic[T]):     def __init__(self, value: T, name: str, logger: Logger) -> None:         self.name = name         self.logger = logger         self.value = value      def set(self, new: T) -> None:         self.log('Set ' + repr(self.value))         self.value = new      def get(self) -> T:         self.log('Get ' + repr(self.value))         return self.value      def log(self, message: str) -> None:         self.logger.info('{}: {}'.format(self.name, message)) 
+
+Generic[T] as a base class defines that the class LoggedVar takes a single type parameter T. This also makes T valid as a type within the class body.
+
+The Generic base class uses a metaclass that defines __getitem__ so that LoggedVar[t] is valid as a type:
+
+from typing import Iterable  def zero_all_vars(vars: Iterable[LoggedVar[int]]) -> None:     for var in vars:         var.set(0) 
+
+A generic type can have any number of type variables, and type variables may be constrained. This is valid:
+
+from typing import TypeVar, Generic ...  T = TypeVar('T') S = TypeVar('S')  class Pair(Generic[T, S]):     ... 
+
+Each type variable argument to Generic must be distinct. This is thus invalid:
+
+from typing import TypeVar, Generic ...  T = TypeVar('T')  class Pair(Generic[T, T]):   # INVALID     ... 
+
+The Generic[T] base class is redundant in simple cases where you subclass some other generic class and specify type variables for its parameters:
+
+from typing import TypeVar, Iterator  T = TypeVar('T')  class MyIter(Iterator[T]):     ... 
+
+That class definition is equivalent to:
+
+class MyIter(Iterator[T], Generic[T]):     ... 
+
+You can use multiple inheritance with Generic:
+
+from typing import TypeVar, Generic, Sized, Iterable, Container, Tuple  T = TypeVar('T')  class LinkedList(Sized, Generic[T]):     ...  K = TypeVar('K') V = TypeVar('V')  class MyMapping(Iterable[Tuple[K, V]],                 Container[Tuple[K, V]],                 Generic[K, V]):     ... 
+
+Subclassing a generic class without specifying type parameters assumes Any for each position. In the following example, MyIterable is not generic but implicitly inherits from Iterable[Any]:
+
+from typing import Iterable  class MyIterable(Iterable):  # Same as Iterable[Any]     ... 
+
+Generic metaclasses are not supported.",Type System Design,Support for Generic User-Defined Classes,Key Feature
+484,"Type variables follow normal name resolution rules. However, there are some special cases in the static typechecking context:
+
+A type variable used in a generic function could be inferred to represent different types in the same code block. Example:
+
+from typing import TypeVar, Generic  T = TypeVar('T')  def fun_1(x: T) -> T: ...  # T here def fun_2(x: T) -> T: ...  # and here could be different  fun_1(1)                   # This is OK, T is inferred to be int fun_2('a')                 # This is also OK, now T is str 
+
+A type variable used in a method of a generic class that coincides with one of the variables that parameterize this class is always bound to that variable. Example:
+
+from typing import TypeVar, Generic  T = TypeVar('T')  class MyClass(Generic[T]):     def meth_1(self, x: T) -> T: ...  # T here     def meth_2(self, x: T) -> T: ...  # and here are always the same  a = MyClass()  # type: MyClass[int] a.meth_1(1)    # OK a.meth_2('a')  # This is an error! 
+
+A type variable used in a method that does not match any of the variables that parameterize the class makes this method a generic function in that variable:
+
+T = TypeVar('T') S = TypeVar('S') class Foo(Generic[T]):     def method(self, x: T, y: S) -> S:         ...  x = Foo()               # type: Foo[int] y = x.method(0, ""abc"")  # inferred type of y is str 
+
+Unbound type variables should not appear in the bodies of generic functions, or in the class bodies apart from method definitions:
+
+T = TypeVar('T') S = TypeVar('S')  def a_fun(x: T) -> None:     # this is OK     y = []  # type: List[T]     # but below is an error!     y = []  # type: List[S]  class Bar(Generic[T]):     # this is also an error     an_attr = []  # type: List[S]      def do_something(x: S) -> S:  # this is OK though         ... 
+
+A generic class definition that appears inside a generic function should not use type variables that parameterize the generic function:
+
+from typing import List  def a_fun(x: T) -> None:      # This is OK     a_list = []  # type: List[T]     ...      # This is however illegal     class MyGeneric(Generic[T]):         ... 
+
+A generic class nested in another generic class cannot use same type variables. The scope of the type variables of the outer class doesn’t cover the inner one:
+
+T = TypeVar('T') S = TypeVar('S')  class Outer(Generic[T]):     class Bad(Iterable[T]):       # Error         ...     class AlsoBad:         x = None  # type: List[T] # Also an error      class Inner(Iterable[S]):     # OK         ...     attr = None  # type: Inner[T] # Also OK 
+",Type System Design,Type Variable Scoping and Binding Rules,Key Feature
+484,User-defined generic classes can be instantiated. Suppose we write a Node class inheriting from Generic[T]:...,Type System Design,Generic Type Instantiation Behavior,Key Feature
+484,"Generic[T] is only valid as a base class – it’s not a proper type. However, user-defined generic types such as LinkedList[T] from the above example and built-in generic types and ABCs such as List[T] and Iterable[T] are valid both as types and as base classes. For example, we can define a subclass of Dict that specializes type arguments:
+
+from typing import Dict, List, Optional  class Node:     ...  class SymbolTable(Dict[str, List[Node]]):     def push(self, name: str, node: Node) -> None:         self.setdefault(name, []).append(node)      def pop(self, name: str) -> Node:         return self[name].pop()      def lookup(self, name: str) -> Optional[Node]:         nodes = self.get(name)         if nodes:             return nodes[-1]         return None 
+
+SymbolTable is a subclass of dict and a subtype of Dict[str, List[Node]].
+
+If a generic base class has a type variable as a type argument, this makes the defined class generic. For example, we can define a generic LinkedList class that is iterable and a container:
+
+from typing import TypeVar, Iterable, Container  T = TypeVar('T')  class LinkedList(Iterable[T], Container[T]):     ... 
+
+Now LinkedList[int] is a valid type. Note that we can use T multiple times in the base class list, as long as we don’t use the same type variable T multiple times within Generic[...].
+
+Also consider the following example:
+
+from typing import TypeVar, Mapping  T = TypeVar('T')  class MyDict(Mapping[str, T]):     ... 
+
+In this case MyDict has a single parameter, T.",Type System Design,Generic Inheritance and User-Defined Generic Types,Key Feature
+484,"A type variable may specify an upper bound using bound=<type> (note: <type> itself cannot be parameterized by type variables). This means that an actual type substituted (explicitly or implicitly) for the type variable must be a subtype of the boundary type. Example:
+
+from typing import TypeVar, Sized  ST = TypeVar('ST', bound=Sized)  def longer(x: ST, y: ST) -> ST:     if len(x) > len(y):         return x     else:         return y  longer([1], [1, 2])  # ok, return type List[int] longer({1}, {1, 2})  # ok, return type Set[int] longer([1], {1, 2})  # ok, return type Collection[int] 
+
+An upper bound cannot be combined with type constraints (as in used AnyStr, see the example earlier); type constraints cause the inferred type to be _exactly_ one of the constraint types, while an upper bound just requires that the actual type is a subtype of the boundary type.",Type System Design,Advanced Type Variable Constraints,Key Feature
+484,"Consider a class Employee with a subclass Manager. Now suppose we have a function with an argument annotated with List[Employee]. Should we be allowed to call this function with a variable of type List[Manager] as its argument? Many people would answer “yes, of course” without even considering the consequences. But unless we know more about the function, a type checker should reject such a call: the function might append an Employee instance to the list, which would violate the variable’s type in the caller.
+
+It turns out such an argument acts contravariantly, whereas the intuitive answer (which is correct in case the function doesn’t mutate its argument!) requires the argument to act covariantly. A longer introduction to these concepts can be found on Wikipedia and in PEP 483; here we just show how to control a type checker’s behavior.
+
+By default generic types are considered invariant in all type variables, which means that values for variables annotated with types like List[Employee] must exactly match the type annotation – no subclasses or superclasses of the type parameter (in this example Employee) are allowed.
+
+To facilitate the declaration of container types where covariant or contravariant type checking is acceptable, type variables accept keyword arguments covariant=True or contravariant=True. At most one of these may be passed. Generic types defined with such variables are considered covariant or contravariant in the corresponding variable. By convention, it is recommended to use names ending in _co for type variables defined with covariant=True and names ending in _contra for that defined with contravariant=True.
+
+A typical example involves defining an immutable (or read-only) container class:
+
+from typing import TypeVar, Generic, Iterable, Iterator  T_co = TypeVar('T_co', covariant=True)  class ImmutableList(Generic[T_co]):     def __init__(self, items: Iterable[T_co]) -> None: ...     def __iter__(self) -> Iterator[T_co]: ...     ...  class Employee: ...  class Manager(Employee): ...  def dump_employees(emps: ImmutableList[Employee]) -> None:     for emp in emps:         ...  mgrs = ImmutableList([Manager()])  # type: ImmutableList[Manager] dump_employees(mgrs)  # OK 
+
+The read-only collection classes in typing are all declared covariant in their type variable (e.g. Mapping and Sequence). The mutable collection classes (e.g. MutableMapping and MutableSequence) are declared invariant. The one example of a contravariant type is the Generator type, which is contravariant in the send() argument type (see below).
+
+Note: Covariance or contravariance is not a property of a type variable, but a property of a generic class defined using this variable. Variance is only applicable to generic types; generic functions do not have this property. The latter should be defined using only type variables without covariant or contravariant keyword arguments. For example, the following example is fine:
+
+from typing import TypeVar  class Employee: ...  class Manager(Employee): ...  E = TypeVar('E', bound=Employee)  def dump_employee(e: E) -> None: ...  dump_employee(Manager())  # OK 
+
+while the following is prohibited:
+
+B_co = TypeVar('B_co', covariant=True)  def bad_func(x: B_co) -> B_co:  # Flagged as error by a type checker     ... ",Type System Design,Variance Support in Generic Types,Key Feature
+484,"PEP 3141 defines Python’s numeric tower, and the stdlib module numbers implements the corresponding ABCs (Number, Complex, Real, Rational and Integral). There are some issues with these ABCs, but the built-in concrete numeric classes complex, float and int are ubiquitous (especially the latter two :-).
+
+Rather than requiring that users write import numbers and then use numbers.Float etc., this PEP proposes a straightforward shortcut that is almost as effective: when an argument is annotated as having type float, an argument of type int is acceptable; similar, for an argument annotated as having type complex, arguments of type float or int are acceptable. This does not handle classes implementing the corresponding ABCs or the fractions.Fraction class, but we believe those use cases are exceedingly rare.",Type System Design,Numeric Type Compatibility Rules,Design Decision
+484,"When a type hint contains names that have not been defined yet, that definition may be expressed as a string literal, to be resolved later.
+
+A situation where this occurs commonly is the definition of a container class, where the class being defined occurs in the signature of some of the methods. For example, the following code (the start of a simple binary tree implementation) does not work:
+
+class Tree:     def __init__(self, left: Tree, right: Tree):         self.left = left         self.right = right 
+
+To address this, we write:
+
+class Tree:     def __init__(self, left: 'Tree', right: 'Tree'):         self.left = left         self.right = right 
+
+The string literal should contain a valid Python expression (i.e., compile(lit, '', 'eval') should be a valid code object) and it should evaluate without errors once the module has been fully loaded. The local and global namespace in which it is evaluated should be the same namespaces in which default arguments to the same function would be evaluated.
+
+Moreover, the expression should be parseable as a valid type hint, i.e., it is constrained by the rules from the section Acceptable type hints above.
+
+It is allowable to use string literals as part of a type hint, for example:
+
+class Tree:     ...     def leaves(self) -> List['Tree']:         ... 
+
+A common use for forward references is when e.g. Django models are needed in the signatures. Typically, each model is in a separate file, and has methods taking arguments whose type involves other models. Because of the way circular imports work in Python, it is often not possible to import all the needed models directly:
+
+# File models/a.py from models.b import B class A(Model):     def foo(self, b: B): ...  # File models/b.py from models.a import A class B(Model):     def bar(self, a: A): ...  # File main.py from models.a import A from models.b import B 
+
+Assuming main is imported first, this will fail with an ImportError at the line from models.a import A in models/b.py, which is being imported from models/a.py before a has defined class A. The solution is to switch to module-only imports and reference the models by their _module_._class_ name:
+
+# File models/a.py from models import b class A(Model):     def foo(self, b: 'b.B'): ...  # File models/b.py from models import a class B(Model):     def bar(self, a: 'a.A'): ...  # File main.py from models.a import A from models.b import B ",Type System Design,Support for Forward References in Type Annotations,Key Feature
+484,"Since accepting a small, limited set of expected types for a single argument is common, there is a new special factory called Union. Example:
+
+from typing import Union  def handle_employees(e: Union[Employee, Sequence[Employee]]) -> None:     if isinstance(e, Employee):         e = [e]     ... 
+
+A type factored by Union[T1, T2, ...] is a supertype of all types T1, T2, etc., so that a value that is a member of one of these types is acceptable for an argument annotated by Union[T1, T2, ...].
+
+One common case of union types are optional types. By default, None is an invalid value for any type, unless a default value of None has been provided in the function definition. Examples:
+
+def handle_employee(e: Union[Employee, None]) -> None: ... 
+
+As a shorthand for Union[T1, None] you can write Optional[T1]; for example, the above is equivalent to:
+
+from typing import Optional  def handle_employee(e: Optional[Employee]) -> None: ... 
+
+A past version of this PEP allowed type checkers to assume an optional type when the default value is None, as in this code:
+
+def handle_employee(e: Employee = None): ... 
+
+This would have been treated as equivalent to:
+
+def handle_employee(e: Optional[Employee] = None) -> None: ... 
+
+This is no longer the recommended behavior. Type checkers should move towards requiring the optional type to be made explicit.",Type System Design,Support for Union and Optional Types,Key Feature
+484,"A singleton instance is frequently used to mark some special condition, in particular in situations where None is also a valid value for a variable. Example:
+
+_empty = object()  def func(x=_empty):     if x is _empty:  # default argument value         return 0     elif x is None:  # argument was provided and it's None         return 1     else:         return x * 2 
+
+To allow precise typing in such situations, the user should use the Union type in conjunction with the enum.Enum class provided by the standard library, so that type errors can be caught statically:
+
+from typing import Union from enum import Enum  class Empty(Enum):     token = 0 _empty = Empty.token  def func(x: Union[int, None, Empty] = _empty) -> int:      boom = x * 42  # This fails type check      if x is _empty:         return 0     elif x is None:         return 1     else:  # At this point typechecker knows that x can only have type int         return x * 2 
+
+Since the subclasses of Enum cannot be further subclassed, the type of variable x can be statically inferred in all branches of the above example. The same approach is applicable if more than one singleton object is needed: one can use an enumeration that has more than one value:
+
+class Reason(Enum):     timeout = 1     error = 2  def process(response: Union[str, Reason] = '') -> str:     if response is Reason.timeout:         return 'TIMEOUT'     elif response is Reason.error:         return 'ERROR'     else:         # response can be only str, all other possible values exhausted         return 'PROCESSED: ' + response ",Type System Design,Support for Precise Typing with Enumerated Values,Key Feature
+484,"A special kind of type is Any. Every type is consistent with Any. It can be considered a type that has all values and all methods. Note that Any and builtin type object are completely different.
+
+When the type of a value is object, the type checker will reject almost all operations on it, and assigning it to a variable (or using it as a return value) of a more specialized type is a type error. On the other hand, when a value has type Any, the type checker will allow all operations on it, and a value of type Any can be assigned to a variable (or used as a return value) of a more constrained type.
+
+A function parameter without an annotation is assumed to be annotated with Any. If a generic type is used without specifying type parameters, they are assumed to be Any:
+
+from typing import Mapping  def use_map(m: Mapping) -> None:  # Same as Mapping[Any, Any]     ... 
+
+This rule also applies to Tuple, in annotation context it is equivalent to Tuple[Any, ...] and, in turn, to tuple. As well, a bare Callable in an annotation is equivalent to Callable[..., Any] and, in turn, to collections.abc.Callable:
+
+from typing import Tuple, List, Callable  def check_args(args: Tuple) -> bool:     ...  check_args(())           # OK check_args((42, 'abc'))  # Also OK check_args(3.14)         # Flagged as error by a type checker  # A list of arbitrary callables is accepted by this function def apply_callbacks(cbs: List[Callable]) -> None:     ... ",Type System Design,Support for Any Type and Gradual Typing,Key Feature
+484,"The typing module provides a special type NoReturn to annotate functions that never return normally. For example, a function that unconditionally raises an exception:
+
+from typing import NoReturn  def stop() -> NoReturn:     raise RuntimeError('no way') 
+
+The NoReturn annotation is used for functions such as sys.exit. Static type checkers will ensure that functions annotated as returning NoReturn truly never return, either implicitly or explicitly:
+
+import sys from typing import NoReturn    def f(x: int) -> NoReturn:  # Error, f(0) implicitly returns None       if x != 0:           sys.exit(1) 
+
+The checkers will also recognize that the code after calls to such functions is unreachable and will behave accordingly:
+
+# continue from first example def g(x: int) -> int:     if x > 0:         return x     stop()     return 'whatever works'  # Error might be not reported by some checkers                              # that ignore errors in unreachable blocks 
+
+The NoReturn type is only valid as a return annotation of functions, and considered an error if it appears in other positions:
+
+from typing import List, NoReturn  # All of the following are errors def bad1(x: NoReturn) -> int:     ... bad2 = None  # type: NoReturn def bad3() -> List[NoReturn]:     ... ",Type System Design,Support for NoReturn Type Annotation,Key Feature
+484,"Sometimes you want to talk about class objects, in particular class objects that inherit from a given class. This can be spelled as Type[C] where C is a class. To clarify: while C (when used as an annotation) refers to instances of class C, Type[C] refers to subclasses of C. (This is a similar distinction as between object and type.)
+
+For example, suppose we have the following classes:
+
+class User: ...  # Abstract base for User classes class BasicUser(User): ... class ProUser(User): ... class TeamUser(User): ... 
+
+And suppose we have a function that creates an instance of one of these classes if you pass it a class object:
+
+def new_user(user_class):     user = user_class()     # (Here we could write the user object to a database)     return user 
+
+Without Type[] the best we could do to annotate new_user() would be:
+
+def new_user(user_class: type) -> User:     ... 
+
+However using Type[] and a type variable with an upper bound we can do much better:
+
+U = TypeVar('U', bound=User) def new_user(user_class: Type[U]) -> U:     ... 
+
+Now when we call new_user() with a specific subclass of User a type checker will infer the correct type of the result:
+
+joe = new_user(BasicUser)  # Inferred type is BasicUser 
+
+The value corresponding to Type[C] must be an actual class object that’s a subtype of C, not a special form. In other words, in the above example calling e.g. new_user(Union[BasicUser, ProUser]) is rejected by the type checker (in addition to failing at runtime because you can’t instantiate a union).
+
+Note that it is legal to use a union of classes as the parameter for Type[], as in:
+
+def new_non_team_user(user_class: Type[Union[BasicUser, ProUser]]):     user = new_user(user_class)     ... 
+
+However the actual argument passed in at runtime must still be a concrete class object, e.g. in the above example:
+
+new_non_team_user(ProUser)  # OK new_non_team_user(TeamUser)  # Disallowed by type checker 
+
+Type[Any] is also supported (see below for its meaning).
+
+Type[T] where T is a type variable is allowed when annotating the first argument of a class method (see the relevant section).
+
+Any other special constructs like Tuple or Callable are not allowed as an argument to Type.
+
+There are some concerns with this feature: for example when new_user() calls user_class() this implies that all subclasses of User must support this in their constructor signature. However this is not unique to Type[]: class methods have similar concerns. A type checker ought to flag violations of such assumptions, but by default constructor calls that match the constructor signature in the indicated base class (User in the example above) should be allowed. A program containing a complex or extensible class hierarchy might also handle this by using a factory class method. A future revision of this PEP may introduce better ways of dealing with these concerns.
+
+When Type is parameterized it requires exactly one parameter. Plain Type without brackets is equivalent to Type[Any] and this in turn is equivalent to type (the root of Python’s metaclass hierarchy). This equivalence also motivates the name, Type, as opposed to alternatives like Class or SubType, which were proposed while this feature was under discussion; this is similar to the relationship between e.g. List and list.
+
+Regarding the behavior of Type[Any] (or Type or type), accessing attributes of a variable with this type only provides attributes and methods defined by type (for example, __repr__() and __mro__). Such a variable can be called with arbitrary arguments, and the return type is Any.
+
+Type is covariant in its parameter, because Type[Derived] is a subtype of Type[Base]:
+
+def new_pro_user(pro_user_class: Type[ProUser]):     user = new_user(pro_user_class)  # OK     ... ",Type System Design,Support for Type Objects and Class Type Annotations,Key Feature
+484,"In most cases the first argument of class and instance methods does not need to be annotated, and it is assumed to have the type of the containing class for instance methods, and a type object type corresponding to the containing class object for class methods. In addition, the first argument in an instance method can be annotated with a type variable. In this case the return type may use the same type variable, thus making that method a generic function. For example:
+
+T = TypeVar('T', bound='Copyable') class Copyable:     def copy(self: T) -> T:         # return a copy of self  class C(Copyable): ... c = C() c2 = c.copy()  # type here should be C 
+
+The same applies to class methods using Type[] in an annotation of the first argument:
+
+T = TypeVar('T', bound='C') class C:     @classmethod     def factory(cls: Type[T]) -> T:         # make a new instance of cls  class D(C): ... d = D.factory()  # type here should be D 
+
+Note that some type checkers may apply restrictions on this use, such as requiring an appropriate upper bound for the type variable used (see examples).",Type System Design,Support for Generic Class and Instance Method Annotations,Key Feature
+484,"In addition, the first argument in an instance method can be annotated with a type variable. In this case the return type may use the same type variable, thus making that method a generic function.",Type System Design,Support for Generic Class and Instance Method Annotations,Key Feature
+484,The same applies to class methods using Type[] in an annotation of the first argument.,Type System Design,Support for Generic Class and Instance Method Annotations,Key Feature
+484,"Coroutines introduced in PEP 492 are annotated with the same syntax as ordinary functions. However, the return type annotation corresponds to the type of await expression, not to the coroutine type.",Type System Design,Support for Generator and Coroutine Type Annotations,Key Feature
+484,"No first-class syntax support for explicitly marking variables as being of a specific type is added by this PEP. To help with type inference in complex cases, a comment of the following format may be used:
+x = [] # type: List[Employee]",Type Annotation Syntax,Support for Type Comments,Key Feature
+484,Type comments should be put on the last line of the statement that contains the variable definition.,Type Annotation Syntax,Support for Type Comments,Key Feature
+484,"In stubs it may be useful to declare the existence of a variable without giving it an initial value. This can be done using PEP 526 variable annotation syntax:
+stream: IO[str]",Stub Files & Type Distribution,Support for Variable Annotations in Stubs,Key Feature
+484,The # type: ignore comment should be put on the line that the error refers to.,Type Checking Control,Support for Disabling or Ignoring Type Checking,Key Feature
+484,"If type hinting proves useful in general, a syntax for typing variables may be provided in a future Python version. (UPDATE: This syntax was added in Python 3.6 through PEP 526.)",Variable Annotations,Introducing Native Variable Annotation Syntax,Evolution of Type Hinting
+484,"The cast(t, x) call tells the type checker that we are confident that the type of x is t. At runtime a cast always returns the expression unchanged – it does not check the type, and it does not convert or coerce the value.",Type System Design,Support for Explicit Type Casting,Key Feature
+484,"Casts differ from type comments. When using a type comment, the type checker should still verify that the inferred type is consistent with the stated type. When using a cast, the type checker should blindly believe the programmer.",Type System Design,Support for Explicit Type Casting,Key Feature
+484,"NewType helper function
+
+typing.py provides a helper function NewType that creates simple unique types with almost zero runtime overhead.",Type System Design,Support for Defining New User-Specific Types,Key Feature
+484,"Stub files are files containing type hints that are only for use by the type checker, not at runtime.",Stub Files & Type Distribution,Stub File-Based Type Distribution,Key Feature
+484,There are several use cases for stub files: Extension modules; Third-party modules whose authors have not yet added type hints; Standard library modules for which type hints have not yet been written; Modules that must be compatible with Python 2 and 3.,Stub Files & Type Distribution,Stub File-Based Type Distribution,Key Feature
+484,The @overload decorator allows describing functions and methods that support multiple different combinations of argument types.,Type System Design,Function and Method Overloading,Key Feature
+484,This description is more precise than would be possible using unions (which cannot express the relationship between the argument and return types).,Type System Design,Function and Method Overloading,Key Feature
+484,A constrained TypeVar type can often be used instead of using the @overload decorator.,Type System Design,Function and Method Overloading,Key Feature
+484,Third-party stubs installable by pip from PyPI are also supported.,Stub Files & Type Distribution,Support for Third-Party Stub File Distribution,Key Feature
+484,Third-party stubs have to be versioned using the lowest version of the source package that is compatible.,Stub Files & Type Distribution,Support for Versioned Stub Files,Key Feature
+484,There is a shared repository where useful stubs are being collected.,Stub Files & Type Distribution,Support for Centralized Stub Repository (Typeshed),Key Feature
+484,"No syntax for listing explicitly raised exceptions is proposed. Currently the only known use case for this feature is documentational, in which case the recommendation is to put this information in a docstring.",Type System Design,Rejection of Exception Type Annotation Syntax,Design Decision
+484,"To open the usage of static type checking to Python 3.5 as well as older versions, a uniform namespace is required. For this purpose, a new module in the standard library is introduced called typing.",Type System Design,Introduction of Typing Module,Key Feature
+,"It defines the fundamental building blocks for constructing types (e.g. Any), types representing generic variants of builtin collections (e.g. List), types representing generic collection ABCs (e.g. Sequence), and a small collection of convenience definitions.",Type System Design,Expansion of Type Hinting Utilities,Key Feature
+484,"It defines the fundamental building blocks for constructing types (e.g. Any), types representing generic variants of builtin collections (e.g. List), types representing generic collection ABCs (e.g. Sequence), and a small collection of convenience definitions.",Type System Design,Introduction of Typing Module,Key Feature
+484,"Fundamental building blocks: Any, Union, Callable, Tuple, TypeVar, Generic, Type.",Type System Design,Introduction of Typing Module,Key Feature
+484,"Generic variants of builtin collections: Dict, DefaultDict, List, Set, FrozenSet.",Type System Design,Support for Generic Collection Type Annotations,Key Feature
+484,"Generic variants of container ABCs: Awaitable, AsyncIterable, AsyncIterator, Collection, Container, Coroutine, Generator, Iterable, Iterator, Mapping, Sequence.",Type System Design,Support for Generic Collection Type Annotations,Key Feature
+484,"Convenience definitions: Optional, Text, AnyStr, NamedTuple, NewType, cast(), @no_type_check, @overload, get_type_hints(), TYPE_CHECKING.",Type System Design,Expansion of Type Hinting Utilities,Key Feature
+484,Some tools may want to support type annotations in code that must be compatible with Python 2.7. For this purpose this PEP has a suggested extension where function annotations are placed in a # type: comment.,Type Annotation Syntax,Support for Type Comments,Key Feature
+484,Tools that support this syntax should support it regardless of the Python version being checked. This is necessary in order to support code that straddles Python 2 and Python 3.,Compatibility & Adoption,Backward Compatibility with Previous Python Versions,Key Feature
+484,It is not allowed for an argument or return value to have both a type annotation and a type comment.,Type Annotation Syntax,Maintaining Consistency Between Annotation Mechanisms,Design Decision
+484,"For all these reasons, square brackets (e.g. List[int]) are (and have long been) the preferred syntax for generic type parameters.",Type Annotation Syntax,Standardizing Generic Type Parameter Syntax,Design Decision
+484,"The current proposal does not introduce any direct incompatibilities, so programs using annotations in Python 3.4 will still work correctly and without prejudice in Python 3.5.",Compatibility & Adoption,Preserving Backward Compatibility of Annotations,Compatibility
+484,"We do hope that type hints will eventually become the sole use for annotations, but this will require additional discussion and a deprecation period after the initial roll-out of the typing module.",Compatibility & Adoption,Gradual Adoption of Type Hints,Evolution of Type Hinting
+484,The current proposal defines a decorator @no_type_check which disables the default interpretation of annotations as type hints in a given class or function.,Type Checking Control,Support for Disabling Type Checking,Key Feature
+484,"It also defines a meta-decorator @no_type_check_decorator which can be used to decorate a decorator, causing annotations in any function or class decorated with the latter to be ignored by the type checker.",Type Checking Control,Support for Disabling Type Checking,Key Feature
+484,The current proposal is admittedly sub-optimal when type hints must contain forward references.”,Type System Design,Support for Forward References in Type Annotations,Key Feature
+484,A common scenario is a class definition whose methods need to reference the class itself in their annotations,Type System Design,Support for Forward References in Type Annotations,Key Feature
+484,Our solution (...) is to allow using string literals in annotations.,Type System Design,Support for Forward References in Type Annotations,Key Feature
+484,A counterproposal would change the semantics of type hints so they aren’t evaluated at runtime at all,Type Annotation Syntax,Preserving Annotation Flexibility,Design Decision
+484,The double colon (::) ... disambiguating between type hints and other annotations,Type Annotation Syntax,Standardizing Type Annotation Syntax,Design Decision
+484,It’s actually a feature that type hints are evaluated at runtime,Type Annotation Syntax,Preserving Annotation Flexibility,Design Decision
+484,Making type hints available at runtime allows runtime type checkers to be built on top of type hints.,Developer Tooling & Ecosystem Support,Support for Runtime Type Checking Tools,Benefits
+484,It catches mistakes even when the type checker is not run.,Developer Tooling & Ecosystem Support,Support for Static Analysis and Developer Tools,Benefits
+484,"Because it’s new syntax, using the double colon for type hints would limit them to code that works with Python 3.5 only",Compatibility & Adoption,Backward Compatibility with Previous Python Versions,Previous Approach / Limitation
+484,"By using existing syntax, the current proposal can easily work for older versions of Python 3",Type Annotation Syntax,Preserving Annotation Flexibility,Design Decision
+484,"A decorator, e.g. @typehints(name=str, returns=str)..",Type Annotation Syntax,Standardizing Type Annotation Syntax,Motivation
+484,Stub files... are primarily useful for adding type hints to existing code...,Stub Files & Type Distribution,Support for Stub Files,Key Feature
+484,"Docstrings. There is an existing convention for docstrings, based on the Sphinx notation (:type arg1: description). This is pretty verbose (an extra line per parameter), and not very elegant. We could also make up something new, but the annotation syntax is hard to beat (because it was designed for this very purpose).",Type Annotation Syntax,Standardizing Type Annotation Syntax,Motivation
+526,"PEP 484 introduced type hints, a.k.a. type annotations. While its main focus was function annotations, it also introduced the notion of type comments to annotate variables:",Type Hints,Introduction of Type Hints for Variables and Functions,Motivation
+526,"# 'primes' is a list of integers primes = []  # type: List[int]  # 'captain' is a string (Note: initial value is a problem) captain = ...  # type: str  class Starship:     # 'stats' is a class variable     stats = {}  # type: Dict[str, int] ",Variable Annotations,Type Comments for Variable Type Declaration,Previous Approach / Limitation
+526,"This PEP aims at adding syntax to Python for annotating the types of variables (including class variables and instance variables), instead of expressing them through comments:",Variable Annotations,Introducing Native Variable Annotation Syntax,Motivation
+526,"PEP 484 explicitly states that type comments are intended to help with type inference in complex cases, and this PEP does not change this intention. However, since in practice type comments have also been adopted for class variables and instance variables, this PEP also discusses the use of type annotations for those variables.",Variable Annotations,Extending Type Annotation Support to Variable Categories,Key Feature
+526,"Although type comments work well enough, the fact that they’re expressed through comments has some downsides:
+
+Text editors often highlight comments differently from type annotations.
+
+There’s no way to annotate the type of an undefined variable; one needs to initialize it to None (e.g. a = None # type: int).
+
+Variables annotated in a conditional branch are difficult to read:
+
+if some_value:     my_var = function() # type: Logger else:     my_var = another_function() # Why isn't there a type here? 
+
+Since type comments aren’t actually part of the language, if a Python script wants to parse them, it requires a custom parser instead of just using ast.
+
+Type comments are used a lot in typeshed. Migrating typeshed to use the variable annotation syntax instead of type comments would improve readability of stubs.
+
+In situations where normal comments and type comments are used together, it is difficult to distinguish them:
+
+path = None  # type: Optional[str]  # Path to module source 
+
+It’s impossible to retrieve the annotations at runtime outside of attempting to find the module’s source code and parse it at runtime, which is inelegant, to say the least.
+",Variable Annotations,Type Comments as Previous Approach,Previous Approach / Limitation
+526,"The majority of these issues can be alleviated by making the syntax a core part of the language. Moreover, having a dedicated annotation syntax for class and instance variables (in addition to method annotations) will pave the way to static duck-typing as a complement to nominal typing defined by PEP 484.",Variable Annotations,Introducing Native Variable Annotation Syntax,Motivation
+526,"While the proposal is accompanied by an extension of the typing.get_type_hints standard library function for runtime retrieval of annotations, variable annotations are not designed for runtime type checking. Third party packages will have to be developed to implement such functionality.
+
+It should also be emphasized that Python will remain a dynamically typed language, and the authors have no desire to ever make type hints mandatory, even by convention. Type annotations should not be confused with variable declarations in statically typed languages. The goal of annotation syntax is to provide an easy way to specify structured type metadata for third party tools.
+
+This PEP does not require type checkers to change their type checking rules. It merely provides a more readable syntax to replace type comments.",Type System Design,Static Typing Support within a Dynamic Language,Design Decision
+526,"Type annotation can be added to an assignment statement or to a single expression indicating the desired type of the annotation target to a third party type checker:
+
+my_var: int my_var = 5  # Passes type check. other_var: int  = 'a'  # Flagged as error by type checker,                        # but OK at runtime. 
+
+This syntax does not introduce any new semantics beyond PEP 484, so that the following three statements are equivalent:
+
+var = value # type: annotation var: annotation; var = value var: annotation = value 
+
+Below we specify the syntax of type annotations in different contexts and their runtime effects.
+
+We also suggest how type checkers might interpret annotations, but compliance to these suggestions is not mandatory. (This is in line with the attitude towards compliance in PEP 484.)",Variable Annotations,Introducing Native Variable Annotation Syntax,Motivation
+526,"The types of locals and globals can be annotated as follows:
+
+some_number: int           # variable without initial value some_list: List[int] = []  # variable with initial value 
+
+Being able to omit the initial value allows for easier typing of variables assigned in conditional branches:",Variable Annotations,Extending Type Annotation Support to Variable Categories,Key Feature
+526,"
+
+Type annotations can also be used to annotate class and instance variables in class bodies and methods. In particular, the value-less notation a: int allows one to annotate instance variables that should be initialized in __init__ or __new__. The proposed syntax is as follows:
+
+class BasicStarship:     captain: str = 'Picard'               # instance variable with default     damage: int                           # instance variable without default     stats: ClassVar[Dict[str, int]] = {}  # class variable 
+
+Here ClassVar is a special class defined by the typing module that indicates to the static type checker that this variable should not be set on instances.
+
+Note that a ClassVar parameter cannot include any type variables, regardless of the level of nesting: ClassVar[T] and ClassVar[List[Set[T]]] are both invalid if T is a type variable.
+
+This could be illustrated with a more detailed example. In this class:
+
+class Starship:     captain = 'Picard'     stats = {}      def __init__(self, damage, captain=None):         self.damage = damage         if captain:             self.captain = captain  # Else keep the default      def hit(self):         Starship.stats['hits'] = Starship.stats.get('hits', 0) + 1 
+
+stats is intended to be a class variable (keeping track of many different per-game statistics), while captain is an instance variable with a default value set in the class. This difference might not be seen by a type checker: both get initialized in the class, but captain serves only as a convenient default value for the instance variable, while stats is truly a class variable – it is intended to be shared by all instances.
+
+Since both variables happen to be initialized at the class level, it is useful to distinguish them by marking class variables as annotated with types wrapped in ClassVar[...]. In this way a type checker may flag accidental assignments to attributes with the same name on instances.
+
+For example, annotating the discussed class:
+
+class Starship:     captain: str = 'Picard'     damage: int     stats: ClassVar[Dict[str, int]] = {}      def __init__(self, damage: int, captain: str = None):         self.damage = damage         if captain:             self.captain = captain  # Else keep the default      def hit(self):         Starship.stats['hits'] = Starship.stats.get('hits', 0) + 1  enterprise_d = Starship(3000) enterprise_d.stats = {} # Flagged as error by a type checker Starship.stats = {} # This is OK 
+
+As a matter of convenience (and convention), instance variables can be annotated in __init__ or other methods, rather than in the class:
+
+from typing import Generic, TypeVar T = TypeVar('T')  class Box(Generic[T]):     def __init__(self, content):         self.content: T = content ",Variable Annotations,Extending Type Annotation Support to Variable Categories,Key Feature
+526,"The target of the annotation can be any valid single assignment target, at least syntactically (it is up to the type checker what to do with this):
+
+class Cls:     pass  c = Cls() c.x: int = 0  # Annotates c.x with int. c.y: int      # Annotates c.y with int.  d = {} d['a']: int = 0  # Annotates d['a'] with int. d['b']: int      # Annotates d['b'] with int. 
+
+Note that even a parenthesized name is considered an expression, not a simple name:
+
+(x): int      # Annotates x with int, (x) treated as expression by compiler. (y): int = 0  # Same situation here. ",Variable Annotations,Extending Type Annotation Support to Variable Categories,Key Feature
+526,"It is illegal to attempt to annotate variables subject to global or nonlocal in the same function scope:
+
+def f():     global x: int  # SyntaxError  def g():     x: int  # Also a SyntaxError     global x 
+
+The reason is that global and nonlocal don’t own variables; therefore, the type annotations belong in the scope owning the variable.
+
+Only single assignment targets and single right hand side values are allowed. In addition, one cannot annotate variables used in a for or with statement; they can be annotated ahead of time, in a similar manner to tuple unpacking:
+
+a: int for a in my_iter:     ...  f: MyFile with myfunc() as f:     ... ",Variable Annotations,Extending Type Annotation Support to Variable Categories,Key Feature
+526,"As variable annotations are more readable than type comments, they are preferred in stub files for all versions of Python, including Python 2.7. Note that stub files are not executed by Python interpreters, and therefore using variable annotations will not lead to errors. Type checkers should support variable annotations in stubs for all versions of Python. For example:
+
+# file lib.pyi  ADDRESS: unicode = ...  class Error:     cause: Union[str, unicode]",Stub Files & Type Distribution,Support for Variable Annotations in Stubs,Key Feature
+526,"Annotations for module level variables, class and instance variables, and local variables should have a single space after corresponding colon. There should be no space before the colon. If an assignment has right hand side, then the equality sign should have exactly one space on both sides. Examples:
+
+Yes:
+
+code: int  class Point:     coords: Tuple[int, int]     label: str = '<unknown>' 
+
+No:
+
+code:int  # No space after colon code : int  # Space before colon  class Test:     result: int=0  # No spaces around equality sign ",Variable Annotations,Standardizing Variable Annotation Syntax,Design Decision
+526,"A new covariant type ClassVar[T_co] is added to the typing module. It accepts only a single argument that should be a valid type, and is used to annotate clas",Developer Tooling & Ecosystem Support,Exposing Annotations Through Introspection APIs,Adoption Practice
+526,"Annotating a local variable will cause the interpreter to treat it as a local, even if it was never assigned to. An",Developer Tooling & Ecosystem Support,Exposing Annotations Through Introspection APIs,Adoption Practice
+526,"While Python with this PEP will not object to:
+
+alice: 'well done' = 'A+' bob: 'what a shame' = 'F-' 
+
+since it will not care about the type annotation beyond “it evaluates without raising”, a type checker that encounters it will flag it, unless disabled with # type: ignore or @no_type_check.",Annotation Design,Maintaining Annotation Extensibility,Design Decision
+526,"""Should we introduce variable annotations at all? Variable annotations have already been around for almost two years in the form of type comments...""",Evolution of Type System,Evolution from Type Comments to Variable Annotations,Motivation
+526,"""However, the comment syntax has many downsides listed in Rationale. This PEP is not about the need for type annotations, it is about what should be the syntax for such annotations.""",Type Annotation Syntax,Improving Type Annotation Syntax,Design Decision
+526,"""Introduce a new keyword...""",Type Annotation Syntax,Improving Type Annotation Syntax,Motivation
+526,"""Use def as a keyword...""",Type Annotation Syntax,Rejection of Function-Like Variable Declaration Syntax,Design Decision
+526,"""Use function based syntax: var = cast(annotation[, value])...""",Type Annotation Syntax,Rejection of Function-Like Variable Declaration Syntax,Design Decision
+526,"""Allow type annotations for tuple unpacking...""",Type Annotation Syntax,Rejection of Function-Based Annotation Syntax,Design Decision
+526,"""Parenthesized form (var: type) for annotations...""",Type Annotation Syntax,Rejection of Parenthesized Annotation Syntax,Design Decision
+526,"""Allow annotations in chained assignments...""",Type Annotation Syntax,Restriction of Ambiguous Assignment Annotations,Design Decision
+526,"""Allow annotations in with and for statement...""",Type Annotation Syntax,Restriction of Complex Assignment Contexts,Design Decision
+526,"""Evaluate local annotations at function definition time...""",Type Annotation Syntax,Preserving Runtime Evaluation Semantics,Design Decision
+526,"""Store variable annotations also in function scope...""",Type Annotation Syntax,Limiting Runtime Annotation Storage,Design Decision
+526,"""Initialize variables annotated without assignment...""",Variable Annotations,Non-Initialization of Annotated Variables,Design Decision
+526,"""Add also InstanceVar to the typing module...""",Variable Annotations,Default Treatment of Instance Variables,Design Decision
+526,"""Allow instance variable annotations only in methods...""",Variable Annotations,Class-Level Organization of Instance Annotations,Design Decision
+526,"""Use syntax x: class t = v for class variables...""",Variable Annotations,Rejection of Alternative Class Variable Syntax,Design Decision
+526,"""Forget about ClassVar altogether...""",Type System Design,Support for Class Variable Type Distinction,Design Decision
+526,"""Use ClassAttr instead of ClassVar...""",Type System Design,Naming of Class Variable Annotation Construct,Design Decision
+526,"""Do not evaluate annotations, treat them as strings...""",Type Annotation Syntax,Preserving Runtime Evaluation of Annotations,Design Decision
+526,"""Annotate variable types in class docstring...""",Stub Files & Type Distribution,Rejection of Documentation-Based Type Declarations,Design Decision
+526,"""Implement annotations as a descriptor...""",Type Annotation Syntax,"Annotation Syntax
+Runtime Annotation Storage Management",Design Decision
+526,"""Treating bare annotations the same as global or nonlocal...""",Variable Annotations,Scope Semantics of Variable Annotations,Design Decision
+483,"t1, t2, etc. and u1, u2, etc. are types. Sometimes we write ti or tj to refer to “any of t1, t2, etc.”
+
+T, U etc. are type variables (defined with TypeVar(), see below).
+
+Objects, classes defined with a class statement, and instances are denoted using standard PEP 8 conventions.
+
+the symbol == applied to types in the context of this PEP means that two expressions represent the same type.
+
+Note that PEP 484 makes a distinction between types and classes (a type is a concept for the type checker, while a class is a runtime concept). In this PEP we clarify this distinction but avoid unnecessary strictness to allow more flexibility in the implementation of type checkers.",Type System Design,Clarifying Type System Terminology,Design Decision
+483,"""There are many definitions of the concept of type in the literature. Here we assume that type is a set of values and a set of functions that one can apply to these values.""",Type System Design,Defining the Concept of Type,Design Decision
+483,"""There are several ways to define a particular type:
+By explicitly listing all values...
+By specifying functions which can be used with variables of a type...
+By a simple class definition",Type System Design,Supporting Multiple Type Definition Mechanisms,Key Feature
+483,It is important for the user to be able to define types in a form that can be understood by type checkers,Type System Design,Enabling User-Defined Types for Static Checking,Key Feature
+483,The goal of this PEP is to propose such a systematic way of defining types for type annotations of variables and functions using PEP 3107 syntax.,Motivation & Goals,Standardizing Type Annotation Semantics,Motivation
+483,"""These annotations can be used to avoid many kind of bugs, for documentation purposes, or maybe even to increase speed of program execution. Here we only focus on avoiding bugs by using a static type checker.",Motivation & Goals,"Optional Static Type Checking
+",Key Feature
+483,"""A crucial notion for static type checker is the subtype relationship. It arises from the question: If first_var has type first_type, and second_var has type second_type, is it safe to assign first_var = second_var?""",Type System Design,Type Compatibility and Subtyping,Design Decision
+483,"""Every value from second_type is also in the set of values of first_type; and every function from first_type is also in the set of functions of second_type.""",Type System Design,Type Compatibility and Subtyping,Key Feature
+483,"Every type is a subtype of itself. The set of values becomes smaller in the process of subtyping, while the set of functions becomes larger.",Type System Design,Type Compatibility and Subtyping,Design Decision
+483,"Every Dog is an Animal, also Dog has more functions... therefore Dog is a subtype of Animal.",Type System Design,Type Compatibility and Subtyping,Key Feature
+483,"Integers are subtype of real numbers... integers support more operations, such as bitwise shifts.""",Type System Design,Type Compatibility and Subtyping,Key Feature
+483,"If List[int] denotes the type formed by all lists containing only integer numbers, then it is not a subtype of List[float]",Type System Design,Type Compatibility and Subtyping,Design Decision
+483,"The first condition of subtyping holds, but appending a real number only works with List[float] so that the second condition fails",Type System Design,Type Compatibility and Subtyping,Type Checking Rules
+483,There are two widespread approaches to declare subtype information to type checker,"Type System Design
+",Type System Design Decisions,Design Decision
+483,"In nominal subtyping, the type tree is based on the class tree, i.e., UserID is considered a subtype of int",Type System Design,Type Compatibility and Subtyping,Key Feature
+483,"This approach should be used under control of the type checker, because in Python one can override attributes in an incompatible way",Type System Design,Type System Design Decisions,Design Decision
+483,"In structural subtyping the subtype relation is deduced from the declared methods, i.e., UserID and int would be considered the same type.",Type System Design,Type Compatibility and Subtyping,Key Feature
+483,"Structural subtyping is considered more flexible. We strive to provide support for both approaches, so that structural information can be used in addition to nominal subtyping.",Type System Design,Type System Design Decisions,Design Decision
+483,"Gradual typing allows one to annotate only part of a program, thus leverage desirable aspects of both dynamic and static typing",Compatibility & Adoption,Gradual Adoption,Adoption Practice
+483,"We define a new relationship, is-consistent-with, which is similar to is-subtype-of, except it is not transitive when the new type Any is involved",Type System Design,Type Compatibility and Subtyping,Design Decision
+483,Assigning a_value to a_variable is OK if the type of a_value is consistent with the type of a_variable.,Type System Design,Type Compatibility and Subtyping,Type Checking Rules
+483,"""Any is consistent with every type. (But Any is not a subtype of every type.)""","Type System Design
+",Type Compatibility and Subtyping,Key Feature
+483,"""Every type is consistent with Any. (But every type is not a subtype of Any.)""",Type System Design,Type Compatibility and Subtyping,Key Feature
+483,"""Any can be considered a type that has all values and all methods.""",Type System Design,Defining Type System Concepts,Key Feature
+483,"""Any declares a fallback to dynamic typing and shuts up complaints from the static checker.""",Type Checking Control,Ignoring Type Errors,Key Feature
+483,"Gradual typing allows one to annotate only part of a program, thus leverage desirable aspects of both dynamic and static typing",Compatibility & Adoption,Gradual Adoption,Adoption Practice
+483,"In Python, classes are object factories defined by the class statement... Class is a dynamic, runtime concept",Type System Design,Type System Design Decisions,Previous Approach
+483,"Type concept is described above, types appear in variable and function type annotations... and are used by static type checkers",Type System Design,Defining Type System Concepts,Key Feature
+483,"Every class is a type as discussed above. But it is tricky and error prone to implement a class that exactly represents semantics of a given type, and it is not a goal of PEP 484",Type System Design,Type System Design Decisions,Design Decision
+483,The static types described in PEP 484 should not be confused with the runtime classes.,Type System Design,Defining Type System Concepts,Design Decision
+483,"""Union[str, int] is a type but not a proper class.""",Type System Design,Defining Type System Concepts,Key Feature
+483,"""No types defined below (i.e. Any, Union, etc.) can be instantiated...""",Type System Design,Type System Design Decisions,Design Decision
+483,"No types defined below can be subclassed, except for Generic and classes derived from it",Type System Design,Type System Design Decisions,Design Decision
+483,All of these will raise TypeError if they appear in isinstance or issubclass..,Type Checking Control,Runtime vs Static Checking Separation,Design Decision
+483,"Any. Every type is consistent with Any; and it is also consistent with every type (see above).
+
+Union[t1, t2, …]. Types that are subtype of at least one of t1 etc. are subtypes of this.",Type System Design,"Union, Optional, Tuple, and Callable Type Expressions",Key Feature
+483,"The fundamental building blocks defined above allow to construct new types in a generic manner. For example, Tuple can take a concrete type float and make a concrete type Vector = Tuple[float, ...], or it can take another type UserID and make another concrete type Registry = Tuple[UserID, ...]. Such semantics is known as generic type constructor, it is similar to semantics of functions, but a function takes a value and returns a value, while generic type constructor takes a type and “returns” a type.",Type System Design,Generic Types and Type Variables,Key Feature
+483,"X = TypeVar('X') declares a unique type variable. The name must match the variable name. By default, a type variable ranges over all possible types. Example:",Type System Design,Type Variables,Key Feature
+483,"Users can declare their classes as generic types using the special building block Generic. The definition class MyGeneric(Generic[X, Y, ...]): ... defines a generic type MyGeneric",Type System Design,Support for Generic User-Defined Classes,Key Feature
+483,"If t2 is a subtype of t1, then a generic type constructor GenType is called:
+
+Covariant, if GenType[t2] is a subtype of GenType[t1] for all such t1 and t2.
+
+Contravariant, if GenType[t1] is a subtype of GenType[t2] for all such t1 and t2.",Type System Design,Variance Support in Generic Types,Key Feature
+483,Some things are irrelevant to the theory but make practical use more convenient. (This is not a full list; I probably missed a few and some are still controversial or not fully specified.),Type System Design,Expansion of Type Hinting Utilities,Key Feature
